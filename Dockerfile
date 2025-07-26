@@ -4,6 +4,8 @@ FROM python:3.11-slim
 #Set the working directory inside the container
 WORKDIR /app
 
+LABEL maintainer="alfiya"
+
 #Copy requirements file into container
 COPY requirements.txt .
 

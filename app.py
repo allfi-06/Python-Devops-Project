@@ -1,4 +1,4 @@
-from flask import Flask,request,jsonify
+from flask import Flask,request,jsonify,render_template,redirect,url_for
 import sqlite3
 import os
 
@@ -36,11 +36,30 @@ def handle_notes():
         notes= [dict(row) for row in cursor.fetchall()]
         conn.close()
         return jsonify(notes)
-    
+
+@app.route('/', methods=['GET'])
+def index():
+    conn=sqlite3.connect(DB_FILE)
+    conn.row_factory=sqlite3.Row
+    notes=[dict(row) for row in conn.execute('SELECT * FROM notes')]
+    conn.close()
+    return render_template('index.html',notes=notes)
+
+@app.route('/ui/notes',methods=['POST'])
+def add_note_ui():
+    content=request.form.get('content')
+    print(f"DEBUG: Received content from UI formL:'{content}'")
+    if content:
+        conn=sqlite3.connect(DB_FILE)
+        conn.execute('INSERT INTO notes(content) VALUES(?)',(content,))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('index'))
+
 @app.route('/health')
 def health_check():
     return "OK",200
+
 if __name__ == '__main__':
     init_db()#Ensure the database is ready before running the app
     app.run(host='0.0.0.0',port=5000,debug=True)
-
